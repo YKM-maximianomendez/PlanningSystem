@@ -1,7 +1,9 @@
 import HeadingSmall from '@/components/heading-small';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
 import DataTable from './data-table';
 
 export type OrderStatus = "ED" | "PE" | "PO" | "UN" | null;
@@ -26,6 +28,10 @@ interface IndexProps {
 }
 
 export default function Index({ workcenterCode, orders }: IndexProps) {
+    const handleRefresh = () => {
+        router.reload();
+    };
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Workflow',
@@ -48,7 +54,7 @@ export default function Index({ workcenterCode, orders }: IndexProps) {
                 <div className="flex items-center justify-between gap-2">
                     <HeadingSmall title="Draft" description="Manage your draft workflow." />
                     <div className="flex items-center gap-2">
-
+                        <Button onClick={handleRefresh} variant="outline">Refresh</Button>
                     </div>
                 </div>
                 <DataTable orders={orders} isLoading={false} />

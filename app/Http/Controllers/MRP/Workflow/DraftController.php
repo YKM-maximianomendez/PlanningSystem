@@ -13,46 +13,50 @@ class DraftController extends Controller
     {
         $orders = DB::connection('as400')
             ->select(<<< 'SQL'
-            	SELECT COALESCE(Y60.Y6DDTE, Y61.Y61DTE) AS PSDTE,
-                    COALESCE(Y60.Y6QORD, Y61.Y61QTY) AS PQORD,
-                    COALESCE(Y60.Y6PROD, Y61.Y61PRO) AS PPROD,
-                    COALESCE(Y61.Y61ORD, 0) AS PORD,
-                    COALESCE(Y61.Y61LIN, 0) AS PLINE,
-                    CASE
-                        WHEN Y60.Y6PROD IS NOT NULL THEN
-                            'ED'
-                        WHEN Y61.Y61STS = 'E' THEN
-                            'PE'
-                        WHEN Y61.Y61ORD IS NOT NULL THEN
-                            'PO'
-                    ELSE 'UN'
-                    END AS PSTAT,
-                    COALESCE(Y61.Y61TXT, '') AS PTXT,
-                    CASE
-                        WHEN Y60.Y6PROD IS NOT NULL THEN
-                            'YH0160'
-                        WHEN Y61.Y61STS = 'E' THEN
-                            'YH0161'
-                        WHEN Y61.Y61ORD IS NOT NULL THEN
-                            'YH0161'
-                        ELSE
-                            'HPO'
-                    END AS PLOC,
-                    AVM.VENDOR,
-                    AVM.VNDNAM
-                FROM LX834FU02.YH016 Y60
-                    FULL OUTER JOIN LX834FU02.YH0161 Y61
-                        ON Y60.Y6VEND = Y61.Y61VND
-                        AND Y60.Y6WC = Y61.Y61WC
-                        AND Y60.Y6PROD = Y61.Y61PRO
-                        AND Y60.Y6DDTE = Y61.Y61DTE
-                        AND Y60.Y6QORD = Y61.Y61QTY
-                    JOIN LX834F01.AVM AVM
-                        ON (AVM.VENDOR = COALESCE(Y60.Y6VEND, Y61.Y61VND))
-                WHERE COALESCE(Y60.Y6WC, Y61.Y61WC) = ?
-                ORDER BY PSDTE, PPROD, PORD, PLINE
-                WITH UR
-            SQL, [$workcenterCode]);
+            	WITH BASE AS(
+                SELECT COALESCE(Y60.Y6DDTE, Y61.Y61DTE) AS PSDTE,
+                                COALESCE(Y60.Y6QORD, Y61.Y61QTY) AS PQORD,
+                                COALESCE(Y60.Y6PROD, Y61.Y61PRO) AS PPROD,
+                                COALESCE(Y61.Y61ORD, 0) AS PORD,
+                                COALESCE(Y61.Y61LIN, 0) AS PLINE,
+                                CASE
+                                    WHEN Y60.Y6PROD IS NOT NULL THEN
+                                        'ED'
+                                    WHEN Y61.Y61STS = 'E' THEN
+                                        'PE'
+                                    WHEN Y61.Y61ORD IS NOT NULL THEN
+                                        'PO'
+                                ELSE 'UN'
+                                END AS PSTAT,
+                                COALESCE(Y61.Y61TXT, '') AS PTXT,
+                                CASE
+                                    WHEN Y60.Y6PROD IS NOT NULL THEN
+                                        'YH0160'
+                                    WHEN Y61.Y61STS = 'E' THEN
+                                        'YH0161'
+                                    WHEN Y61.Y61ORD IS NOT NULL THEN
+                                        'YH0161'
+                                    ELSE
+                                        'HPO'
+                                END AS PLOC,
+                                AVM.VENDOR,
+                                AVM.VNDNAM
+                            FROM LX834FU02.YH016 Y60
+                                FULL OUTER JOIN LX834FU02.YH0161 Y61
+                                    ON Y60.Y6VEND = Y61.Y61VND
+                                    AND Y60.Y6WC = Y61.Y61WC
+                                    AND Y60.Y6PROD = Y61.Y61PRO
+                                    AND Y60.Y6DDTE = Y61.Y61DTE
+                                    AND Y60.Y6QORD = Y61.Y61QTY
+                                JOIN LX834F01.AVM AVM
+                                    ON (AVM.VENDOR = COALESCE(Y60.Y6VEND, Y61.Y61VND))
+                            WHERE COALESCE(Y60.Y6WC, Y61.Y61WC) = '111010'
+                            ORDER BY PSDTE, PPROD, PORD, PLINE
+            )
+            SELECT * FROM BASE 
+            WHERE PLOC IN (?, ?)
+            WITH UR
+            SQL, [$workcenterCode, 'YH0160', 'YH0161']);
 
         return Inertia::render('mrp/workflow/draft/index', [
             'workcenterCode' => $workcenterCode,
