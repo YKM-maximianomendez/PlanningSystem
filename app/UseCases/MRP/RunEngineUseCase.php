@@ -163,6 +163,7 @@ class RunEngineUseCase
             'concepts' => $concepts,
             'initialPlannedStock' => $initialPlannedStock,
             'orders' => $stagingOrders,
+            'steelConsumption' => $orders,
         ];
     }
 

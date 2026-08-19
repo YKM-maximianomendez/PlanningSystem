@@ -64,7 +64,7 @@ const WorkcenterItem = (props: Workcenter): JSX.Element => {
                     <WorkflowIcon className="h-3.5 w-3.5" />
                 </Link>
                 <Link
-                    href={''}
+                    href={route('mrp.workflow.draft.index', { workcenterCode: props.workcenterCode })}
                     className={cn(
                         'inline-flex h-8 items-center justify-center gap-2 rounded-md px-2.5 text-xs font-semibold transition-colors',
                         'bg-transparent text-amber-600 hover:bg-amber-100/50 hover:text-amber-700',

@@ -6,6 +6,7 @@ import HeadingSmall from '@/components/heading-small';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { FolderSync } from 'lucide-react';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -33,10 +34,30 @@ export type ProductionPlanning = {
 
 interface IndexProps {
     productionPlannings: ProductionPlanning[];
+    workcenterCode: string;
 }
 
-export default function Index({ productionPlannings }: IndexProps) {
+export default function Index({ productionPlannings, workcenterCode }: IndexProps) {
     const [isLoading, setIsLoading] = useState(false);
+
+    const handleSync = () => {
+        router.post(route('mrp.configuration.sync-production-planning', { workcenterCode }), {}, {
+            preserveState: false,
+            onStart: () => {
+                setIsLoading(true);
+            },
+            onSuccess: () => {
+                toast.success('Production planning synchronized successfully.');
+            },
+            onFinish: () => {
+                setIsLoading(false);
+            },
+            onError: () => {
+                toast.error('An error occurred while synchronizing production planning.');
+            }
+        });
+    }
+
     const handleRefresh = () => {
         setIsLoading(true);
         router.reload({
@@ -58,7 +79,7 @@ export default function Index({ productionPlannings }: IndexProps) {
             <Head title="Workcenter Planning" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
-                    <HeadingSmall title="Workcenter Planning" description="Manage your workcenter planning and production scheduling." icon="WorkflowIcon" />
+                    <HeadingSmall title="Workcenter Planning" description="Manage your workcenter planning and production scheduling." />
                     <div className="flex items-center gap-2">
                         <Button
                             onClick={handleRefresh}
@@ -78,7 +99,8 @@ export default function Index({ productionPlannings }: IndexProps) {
                         <Button
                             variant={'outline'}
                             size={'sm'}
-                            disabled={true}
+                            disabled={isLoading}
+                            onClick={handleSync}
                         >
                             <FolderSync className="h-4 w-4" />
                         </Button>

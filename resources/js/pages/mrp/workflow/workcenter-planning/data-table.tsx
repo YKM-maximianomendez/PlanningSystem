@@ -150,6 +150,7 @@ export default function DataTable({ productionPlannings, isLoading = false }: Da
                 <OpenSimulation
                     open={openSimulationDialog}
                     handleOpenChange={setOpenSimulationDialog}
+                    selectedProductionPlanning={selectedMaterial}
                 />
             </div>
         </>

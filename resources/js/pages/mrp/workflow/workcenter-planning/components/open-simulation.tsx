@@ -16,7 +16,7 @@ export default function OpenSimulation({ open, handleOpenChange, selectedProduct
     const [isPlanning, setIsPlanning] = useState(false);
 
     const handlePlan = () => {
-        router.get(route('test'), {}, {
+        router.get(route('mrp.simulation.index', [selectedProductionPlanning?.productionPlanningId]), {}, {
             preserveState: false,
             preserveScroll: false,
             onStart: () => {

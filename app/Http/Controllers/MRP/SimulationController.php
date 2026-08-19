@@ -49,6 +49,8 @@ class SimulationController extends Controller
             planningRange: $planningRange,
         );
 
+        // dd($output['steelConsumption'] ?? []);
+
         $concepts = Concept::toKeyValue($output['concepts'] ?? [], $productionPlanningId);
 
         return Inertia::render('mrp/simulation/index', [
@@ -56,17 +58,43 @@ class SimulationController extends Controller
             'concepts' => $concepts,
             'conceptsMap' => $conceptsMap,
             'planningRange' => $planningRange,
+            'configuration' => $configuration,
+            'orders' => array_map(function ($order) {
+                return [
+                    'date' => $order['dueDate'] ?? '',
+                    'quantity' => $order['quantityRequired'],
+                    'orderStatus' => $order['globalStatus'] ?? '',
+                    'orderLocation' => $order['location'] ?? '',
+                ];
+            }, $output['orders'] ?? []),
         ]);
     }
 
-    public function store(Request $request, int $productionPlanningId): void
+    public function store(Request $request, int $productionPlanningId)
     {
-        $data = $request->validate([
-            'concepts' => 'required|array',
-            'concepts.*.id' => 'required|integer',
-            'concepts.*.quantity' => 'required|numeric',
-        ]);
+        try {
+            // $data = $request->validate([
+            //     'orders' => 'array',
+            //     'orders.*.date' => 'required|date_format:Y-m-d',
+            //     'orders.*.quantity' => 'required|numeric',
+            //     'productionPlan' => 'array',
+            //     'productionPlan.*.date' => 'required|date_format:Y-m-d',
+            //     'productionPlan.*.quantity' => 'required|numeric',
+            // ]);
 
-        app(SimulationService::class)->store($data);
+            app(SimulationService::class)->store([
+                'orders' => $request->input('orders', []),
+                'productionPlan' => $request->input('productionPlan', []),
+            ]);
+
+            return back()->with('success', 'Simulation data stored successfully.');
+        } catch (\Throwable $th) {
+            \Log::error('Error storing simulation data: '.$th->getMessage(), [
+                'productionPlanningId' => $productionPlanningId,
+                'requestData' => $request->all(),
+            ]);
+
+            return back()->with('error', 'Failed to store simulation data. Please try again.');
+        }
     }
 }
