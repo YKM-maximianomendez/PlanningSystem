@@ -13,6 +13,13 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 });
 
+Route::middleware(['auth'])->group(function () {
+    sleep(3);
+    Route::get('/test', function () {
+        return Inertia::render('test');
+    })->name('test');
+});
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/web/mrp.php';

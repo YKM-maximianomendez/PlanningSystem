@@ -8,6 +8,7 @@ use App\Services\CalendarService;
 use App\Services\ConceptService;
 use App\Services\MRP\ConfigurationService;
 use App\Services\MRP\ProductionPlanningService;
+use App\Services\MRP\SimulationService;
 use App\Services\PlanningRangeService;
 use App\UseCases\MRP\RunEngineUseCase;
 use Illuminate\Http\Request;
@@ -56,5 +57,16 @@ class SimulationController extends Controller
             'conceptsMap' => $conceptsMap,
             'planningRange' => $planningRange,
         ]);
+    }
+
+    public function store(Request $request, int $productionPlanningId): void
+    {
+        $data = $request->validate([
+            'concepts' => 'required|array',
+            'concepts.*.id' => 'required|integer',
+            'concepts.*.quantity' => 'required|numeric',
+        ]);
+
+        app(SimulationService::class)->store($data);
     }
 }

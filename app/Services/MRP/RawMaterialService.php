@@ -222,6 +222,55 @@ class RawMaterialService
         return $data;
     }
 
+    public function getHistoryOrdersByWorkcenter(
+        Connection $connection,
+        string $workcenterCode
+    ): array {
+        $query = <<< 'SQL'
+        SELECT 
+            COALESCE(Y60.Y6DDTE, Y61.Y61DTE, HPO.PDDTE) AS PSDTE,
+            COALESCE(Y60.Y6QORD, Y61.Y61QTY, HPO.PQORD) AS PQORD,
+            COALESCE(HPO.PQREC, 0) AS PQREC,
+            COALESCE(Y60.Y6PROD, Y61.Y61PRO, HPO.PPROD) AS PPROD,
+            COALESCE(Y61.Y61ORD, HPO.PORD) AS PORD,
+            COALESCE(Y61.Y61LIN, HPO.PLINE) AS PLINE,
+            CASE
+                WHEN Y60.Y6PROD IS NOT NULL THEN 'IN STAGE'
+                WHEN Y61.Y61STS = 'E' THEN 'POSTED WITH ERRORS'
+                WHEN Y61.Y61ORD IS NOT NULL THEN 'POSTING'
+                ELSE HPO.PSTAT
+            END AS PSTAT,
+            CASE
+                WHEN Y60.Y6PROD IS NOT NULL THEN 'YH016'
+                WHEN Y61.Y61STS = 'E' THEN 'YH0161'
+                WHEN Y61.Y61ORD IS NOT NULL THEN 'YH0161'
+                ELSE 'HPO'
+            END AS PLOC
+        FROM LX834FU02.YH016 Y60
+            FULL OUTER JOIN LX834FU02.YH0161 Y61
+                ON Y60.Y6VEND = Y61.Y61VND
+                AND Y60.Y6WC = Y61.Y61WC
+                AND Y60.Y6PROD = Y61.Y61PRO
+                AND Y60.Y6DDTE = Y61.Y61DTE
+                AND Y60.Y6QORD = Y61.Y61QTY
+            FULL OUTER JOIN LX834F01.HPO HPO
+                ON HPO.PORD = Y61.Y61ORD
+                AND HPO.PLINE = Y61.Y61LIN
+                AND HPO.PPROD = COALESCE(Y61.Y61PRO, Y60.Y6PROD)
+                AND HPO.PQORD = COALESCE(Y61.Y61QTY, Y60.Y6QORD)
+                AND HPO.PDDTE = COALESCE(Y61.Y61DTE, Y60.Y6DDTE)
+                AND HPO.PVEND = COALESCE(Y61.Y61VND, Y60.Y6VEND)
+        WHERE COALESCE(Y60.Y6WC, Y61.Y61WC) = ?
+        ORDER BY 
+            COALESCE(Y60.Y6DDTE, Y61.Y61DTE, HPO.PDDTE),
+            COALESCE(Y61.Y61ORD, HPO.PORD)
+        WITH UR
+        SQL;
+
+        return $connection
+            ->select($query, [$workcenterCode]);
+    }
+
     public function getConfirmedOrders(int $materialId, int $vendorId, DateTimeImmutable $start, DateTimeImmutable $end, array $stagingOrders): array
     {
         $query = <<< 'SQL'
