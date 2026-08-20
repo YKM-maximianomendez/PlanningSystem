@@ -29,6 +29,9 @@ export interface Product {
     productCode: string;
     mdiId: number;
     mdiCode: string;
+    workcenterId: number;
+    workcenterCode: string;
+    um: string;
     quantityRequired: number;
     isObsolete: boolean;
     lastCycleCount?: {
@@ -138,6 +141,11 @@ export default function Index({ productionPlanningId, concepts, conceptsMap, pla
                 productCode: configuration.material.materialCode,
                 workcenterCode: '111010',
             })),
+            productionPlan: data.productionPlan?.map((plan) => ({
+                ...plan,
+                workcenterId: configuration.planning.product.workcenterId,
+                um: configuration.planning.product.um,
+            })),
         }));
 
         post(route('mrp.simulation.store', productionPlanningId), {
@@ -151,13 +159,13 @@ export default function Index({ productionPlanningId, concepts, conceptsMap, pla
     const handleOrderChange = (order: Order) => {
         const currentOrders = data.orders || [];
 
-        if (order.quantity === 0) {
-            setData(
-                'orders',
-                currentOrders.filter((item) => item.date !== order.date)
-            );
-            return;
-        }
+        // if (order.quantity === 0) {
+        //     setData(
+        //         'orders',
+        //         currentOrders.filter((item) => item.date !== order.date)
+        //     );
+        //     return;
+        // }
 
         const exists = currentOrders.some(
             (item) => item.date === order.date
@@ -181,20 +189,18 @@ export default function Index({ productionPlanningId, concepts, conceptsMap, pla
     const handleProductionPlan = (productionPlan: ProductionPlan) => {
         const currentOrders = data.productionPlan || [];
 
-        // 1. Si la cantidad es 0, removemos el plan que coincida con fecha y producto
-        if (productionPlan.quantity === 0) {
-            setData(
-                'productionPlan',
-                currentOrders.filter(
-                    (item) => !(item.date === productionPlan.date && item.productId === productionPlan.productId)
-                )
-            );
-            return;
-        }
+        // if (productionPlan.quantity === 0) {
+        //     setData(
+        //         'productionPlan',
+        //         currentOrders.filter(
+        //             (item) => !(item.date === productionPlan.date && item.productId === productionPlan.productId)
+        //         )
+        //     );
+        //     return;
+        // }
 
         let exists = false;
 
-        // 2. Recorremos para actualizar si ya existe el registro para esa fecha y producto
         const updatedOrders = currentOrders.map((item) => {
             if (item.date === productionPlan.date && item.productId === productionPlan.productId) {
                 exists = true;
@@ -203,7 +209,6 @@ export default function Index({ productionPlanningId, concepts, conceptsMap, pla
             return item;
         });
 
-        // 3. Guardamos según corresponda: actualizado o nuevo elemento
         if (exists) {
             setData('productionPlan', updatedOrders);
         } else {
@@ -248,6 +253,7 @@ export default function Index({ productionPlanningId, concepts, conceptsMap, pla
                     loading={refreshing || processing}
                     planning={configuration.planning}
                     orders={orders}
+                    level={configuration.level}
                 />
             </div>
         </AppLayout>

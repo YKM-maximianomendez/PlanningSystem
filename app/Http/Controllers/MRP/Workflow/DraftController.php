@@ -11,6 +11,8 @@ class DraftController extends Controller
 {
     public function index(string $workcenterCode)
     {
+        $location = request()->input('location', 'YH0160');
+
         $orders = DB::connection('as400')
             ->select(<<< 'SQL'
             	WITH BASE AS(
@@ -50,16 +52,17 @@ class DraftController extends Controller
                                     AND Y60.Y6QORD = Y61.Y61QTY
                                 JOIN LX834F01.AVM AVM
                                     ON (AVM.VENDOR = COALESCE(Y60.Y6VEND, Y61.Y61VND))
-                            WHERE COALESCE(Y60.Y6WC, Y61.Y61WC) = '111010'
+                            WHERE COALESCE(Y60.Y6WC, Y61.Y61WC) = ?
                             ORDER BY PSDTE, PPROD, PORD, PLINE
             )
             SELECT * FROM BASE 
-            WHERE PLOC IN (?, ?)
+            WHERE PLOC = ?
             WITH UR
-            SQL, [$workcenterCode, 'YH0160', 'YH0161']);
+            SQL, [$workcenterCode, $location]);
 
         return Inertia::render('mrp/workflow/draft/index', [
             'workcenterCode' => $workcenterCode,
+            'location' => $location,
             'orders' => array_map(function ($order) {
                 return [
                     'productCode' => trim($order->PPROD),

@@ -17,6 +17,7 @@ import { addDays, format, isWeekend, parse } from 'date-fns';
 import { useAgGridTheme } from '@/hooks/use-ag-grid-theme';
 import { validateConceptChange } from '@/utils/validateConceptChange';
 import { toast } from 'sonner';
+import { Engine } from '@/lib/utils/engine';
 
 interface TimeLineProps {
     productionPlanningId: number;
@@ -37,6 +38,7 @@ interface TimeLineProps {
         orderStatus: string;
         orderLocation: string;
     }[] | [];
+    level: number;
 }
 
 export default function TimeLine({
@@ -50,6 +52,7 @@ export default function TimeLine({
     loading = false,
     planning,
     orders = [],
+    level,
 }: TimeLineProps) {
     const gridApiRef = useRef<GridApi | null>(null);
 
@@ -190,12 +193,6 @@ export default function TimeLine({
                     editable: (params) => EDITABLE_CONCEPTS.has(params.data?.concept ?? ''),
                     cellStyle: (params): CellStyle | null | undefined => {
                         const editable = EDITABLE_CONCEPTS.has(params.data?.concept ?? '');
-                        // if (weekend) {
-                        //     return {
-                        //         backgroundColor: appearance === 'dark' ? '#1c1c1c' : '#f0f0f0',
-                        //         color: appearance === 'dark' ? '#555' : '#aaa',
-                        //     };
-                        // }
 
                         if (isToday) {
                             return {
@@ -325,6 +322,10 @@ export default function TimeLine({
                             classes.push('font-bold');
                         }
 
+                        if (weekend) {
+                            classes.push('ag-weekend-cell');
+                        }
+
                         return classes.join(' ');
                     },
                 });
@@ -336,6 +337,24 @@ export default function TimeLine({
             ...dateColumns
         ];
     }, [timelineDates]);
+
+    const applyEngine = (api: any, level: number): any[] => {
+        const rows: PlanningRow[] = [];
+        api.forEachNode((n: any) => { if (n.data) rows.push(n.data); });
+        const computed = new Engine().execute(
+            rows.filter((r) => Engine.INPUT_CONCEPTS.has(r.concept)),
+            planning.product,
+            planningRange,
+            planning?.blankProduct
+        );
+        const affected: any[] = [];
+        api.forEachNode((n: any) => {
+            if (!n.data) return;
+            const v = computed.get(n.data.concept);
+            if (v !== undefined) { n.data.values = v; affected.push(n); }
+        });
+        return affected;
+    };
 
     const handleCellValueChanged = (params: CellValueChangedEvent<PlanningRow>) => {
         if (!params.data) {
@@ -368,6 +387,11 @@ export default function TimeLine({
                 });
             }
         }
+
+        const affected = applyEngine(params.api, level);
+        params.api.refreshCells({ rowNodes: affected, force: true });
+        params.api.flashCells({ rowNodes: affected });
+
     }
 
     const handleSaveSimulation = () => {
@@ -390,7 +414,6 @@ export default function TimeLine({
                     stopEditingWhenCellsLoseFocus
                     onCellValueChanged={handleCellValueChanged}
                     onGridReady={(e) => { gridApiRef.current = e.api; }}
-                    theme={themeClass}
                     loading={loading}
                 />
             </AgGridProvider>

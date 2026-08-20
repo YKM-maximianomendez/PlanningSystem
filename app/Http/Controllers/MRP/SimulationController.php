@@ -13,6 +13,7 @@ use App\Services\PlanningRangeService;
 use App\UseCases\MRP\RunEngineUseCase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -73,23 +74,15 @@ class SimulationController extends Controller
     public function store(Request $request, int $productionPlanningId)
     {
         try {
-            // $data = $request->validate([
-            //     'orders' => 'array',
-            //     'orders.*.date' => 'required|date_format:Y-m-d',
-            //     'orders.*.quantity' => 'required|numeric',
-            //     'productionPlan' => 'array',
-            //     'productionPlan.*.date' => 'required|date_format:Y-m-d',
-            //     'productionPlan.*.quantity' => 'required|numeric',
-            // ]);
-
             app(SimulationService::class)->store([
                 'orders' => $request->input('orders', []),
                 'productionPlan' => $request->input('productionPlan', []),
+                'userId' => '00000',
             ]);
 
             return back()->with('success', 'Simulation data stored successfully.');
         } catch (\Throwable $th) {
-            \Log::error('Error storing simulation data: '.$th->getMessage(), [
+            Log::error('Error storing simulation data: '.$th->getMessage(), [
                 'productionPlanningId' => $productionPlanningId,
                 'requestData' => $request->all(),
             ]);

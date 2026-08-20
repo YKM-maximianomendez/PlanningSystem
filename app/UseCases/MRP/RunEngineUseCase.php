@@ -57,6 +57,12 @@ class RunEngineUseCase
             forecastStrategy: $configuration->forecastStrategy,
         );
 
+        $productionPlan = $this->productionService->getProductionPlan(
+            items: [$product->productCode],
+            from: $planningRange->start,
+            to: $planningRange->end,
+        );
+
         $actualProduction = $this->productionService->getActualProduction(
             connection: $connection,
             items: [$product->productCode],
@@ -77,7 +83,13 @@ class RunEngineUseCase
             )
             : [];
 
-        $blankProductionPlan = [];
+        $blankProductionPlan = $blankProduct
+            ? $this->productionService->getProductionPlan(
+                items: [$blankProduct->productCode],
+                from: $planningRange->start,
+                to: $planningRange->end,
+            )
+            : [];
 
         $weightFactor = $this->resolveWeightFactor(
             planningLevel: $planningLevel,
@@ -140,7 +152,7 @@ class RunEngineUseCase
                 forecast: $demand['forecast'],
                 firm: $demand['firm'],
                 demand: $demand['demand'],
-                productionPlan: [],
+                productionPlan: $productionPlan,
                 actualProduction: $actualProduction,
                 initialPlannedStock: $initialPlannedStock,
                 orders: $orders,
@@ -173,10 +185,10 @@ class RunEngineUseCase
         ?Product $blankProduct = null
     ): float {
         if ($planningLevel === 2) {
-            return (float) ($blankProduct?->quantityRequired ?? 0);
+            return round((float) ($blankProduct?->quantityRequired ?? 0), 2);
         }
 
-        return (float) ($product->quantityRequired ?? 0);
+        return round((float) ($product->quantityRequired ?? 0), 2);
     }
 
     private function calculateInitialPlannedStock(

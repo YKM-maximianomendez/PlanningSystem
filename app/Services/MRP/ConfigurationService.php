@@ -96,6 +96,9 @@ class ConfigurationService
                 productCode: trim($item->product),
                 mdiId: $item->MDI_id,
                 mdiCode: trim($item->MDI),
+                workcenterId: $item->workcenter_id,
+                workcenterCode: trim($item->workcenter),
+                um: $item->um,
                 quantityRequired: $item->quantity_required,
                 isObsolete: $item->is_obsolete,
                 lastCycleCount: $cycleCount,
@@ -162,18 +165,19 @@ class ConfigurationService
 
     private function getAdjustments(int $materialPlanningId): array
     {
-        return [
-            new Adjustment(
-                adjustmentId: 1,
-                adjustmentCode: 'A001',
-                adjustmentValue: 6,
-            ),
-            new Adjustment(
-                adjustmentId: 2,
-                adjustmentCode: 'A002',
-                adjustmentValue: 0,
-            ),
-        ];
+        // return [
+        //     new Adjustment(
+        //         adjustmentId: 1,
+        //         adjustmentCode: 'A001',
+        //         adjustmentValue: 6,
+        //     ),
+        //     new Adjustment(
+        //         adjustmentId: 2,
+        //         adjustmentCode: 'A002',
+        //         adjustmentValue: 0,
+        //     ),
+        // ];
+        return [];
     }
 
     private function getMDI(Collection $data, int $planningLevel, int $mdiId): MDI

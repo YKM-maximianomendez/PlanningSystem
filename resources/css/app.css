@@ -161,3 +161,13 @@
 * {
     font-size: 0.75rem;
 }
+
+.ag-weekend-col {
+    background-color: var(--color-muted);
+    color: var(--color-muted-foreground);
+}
+
+.ag-weekend-cell {
+    background-color: var(--color-muted);
+    color: var(--color-muted-foreground);
+}

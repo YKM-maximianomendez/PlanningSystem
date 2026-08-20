@@ -30,6 +30,19 @@ export const validateConceptChange = (
         'yyyyMMdd'
     );
 
+    if (value < 0) {
+        return {
+            valid: false,
+            message: `Planeación no permitida: ${formatDateString} en ${concept} no puede ser menor a 0.`,
+            affectedCells: [
+                {
+                    concept,
+                    date
+                }
+            ]
+        };
+    }
+
     if (parsedDate < parse(today, 'yyyyMMdd', new Date())) {
         return {
             valid: false,
