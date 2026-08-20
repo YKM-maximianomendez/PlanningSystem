@@ -356,7 +356,9 @@ export default function TimeLine({
         return affected;
     };
 
-    const handleCellValueChanged = (params: CellValueChangedEvent<PlanningRow>) => {
+    const handleCellValueChanged = (
+        params: CellValueChangedEvent<PlanningRow>
+    ) => {
         if (!params.data) {
             return;
         }
@@ -366,37 +368,43 @@ export default function TimeLine({
         const value = Number(params.newValue);
         const oldValue = Number(params.oldValue);
 
-        if (concept === 'PLANNED_STEEL' || concept === 'PLANNED_SHEETS') {
-            orderChange({ date, quantity: value });
-        }
+        switch (concept) {
+            case 'PLANNED_STEEL':
+            case 'PLANNED_SHEETS':
+                orderChange({
+                    date,
+                    quantity: value,
+                });
+                break;
 
-        if (concept === 'PRODUCTION_PLAN' || concept === 'BLANK_PRODUCTION_PLAN') {
-            if (concept === 'PRODUCTION_PLAN') {
+            case 'PRODUCTION_PLAN':
                 productionPlanChange({
                     date,
                     quantity: value,
-                    productId: planning.product.productId
+                    productId: planning.product.productId,
                 });
-            }
+                break;
 
-            if (concept === 'BLANK_PRODUCTION_PLAN') {
+            case 'BLANK_PRODUCTION_PLAN':
                 productionPlanChange({
                     date,
                     quantity: value,
-                    productId: planning.blankProduct?.productId ?? 0
+                    productId: planning.blankProduct?.productId ?? 0,
                 });
-            }
+                break;
         }
 
         const affected = applyEngine(params.api, level);
-        params.api.refreshCells({ rowNodes: affected, force: true });
-        params.api.flashCells({ rowNodes: affected });
 
-    }
+        params.api.refreshCells({
+            rowNodes: affected,
+            force: true,
+        });
 
-    const handleSaveSimulation = () => {
-
-    }
+        params.api.flashCells({
+            rowNodes: affected,
+        });
+    };
 
     const themeClass = useAgGridTheme();
 
