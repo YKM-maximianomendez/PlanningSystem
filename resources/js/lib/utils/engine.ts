@@ -134,6 +134,7 @@ export class Engine {
             inputMap,
             inventory,
             stockDays,
+            plannedPieces,
         );
     }
 
@@ -313,6 +314,7 @@ export class Engine {
         inputMap: Map<string, Concept>,
         inventory: Record<string, number>,
         stockDays: Record<string, number>,
+        plannedPieces: Record<string, number>,
     ): Map<string, Concept> {
         return new Map([
             ['INVENTORY', inventory],
@@ -331,6 +333,7 @@ export class Engine {
                     'BLANK_PLANNED_STOCK_PIECES',
                 ) ?? {},
             ],
+            ['BLANK_PLANNED_PIECES', plannedPieces],
         ]);
     }
 }

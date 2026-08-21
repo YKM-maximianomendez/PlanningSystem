@@ -48,6 +48,25 @@ export interface MDI {
     mdiCode: string;
 }
 
+export interface Material {
+    materialId: number;
+    materialCode: string;
+    classId: number;
+    classCode: string;
+    classDescription: string;
+    vendor: {
+        vendorId: number;
+        vendorCode: string;
+        vendorDescription: string;
+    };
+    um: 'KG' | 'EA';
+    isObsolete: boolean;
+    options: {
+        cutoff_start_date: string;
+        cutoff_quantity: number;
+    }
+}
+
 export type PlanningRow = {
     concept: string;
     values: Concept;
@@ -61,11 +80,17 @@ interface IndexProps {
     configuration: {
         level: number;
         mdi: MDI;
+        material: Material;
         planning: {
             product: Product;
             blankProduct?: Product;
         };
+        products: Product[];
     };
+    customer: {
+        customerId: number;
+        customerCode: string;
+    }
     orders: {
         date: string;
         quantity: number;
@@ -95,7 +120,7 @@ export type ProductionPlan = {
     date: string;
     quantity: number;
     productId: number;
-}
+};
 
 export default function Index({ productionPlanningId, concepts, conceptsMap, planningRange, configuration, orders }: IndexProps) {
     const { appearance } = useAppearance();
@@ -130,6 +155,8 @@ export default function Index({ productionPlanningId, concepts, conceptsMap, pla
             }
         });
     };
+
+    const planningProducts = configuration.products.filter(product => product.level === configuration.level);
 
     const handleSaveSimulation = () => {
         transform((data) => ({
@@ -185,35 +212,31 @@ export default function Index({ productionPlanningId, concepts, conceptsMap, pla
         }
     };
 
-
     const handleProductionPlan = (productionPlan: ProductionPlan) => {
         const currentOrders = data.productionPlan || [];
 
-        // if (productionPlan.quantity === 0) {
-        //     setData(
-        //         'productionPlan',
-        //         currentOrders.filter(
-        //             (item) => !(item.date === productionPlan.date && item.productId === productionPlan.productId)
-        //         )
-        //     );
-        //     return;
-        // }
-
-        let exists = false;
-
         const updatedOrders = currentOrders.map((item) => {
-            if (item.date === productionPlan.date && item.productId === productionPlan.productId) {
-                exists = true;
-                return { ...item, quantity: productionPlan.quantity };
+            if (item.date === productionPlan.date) {
+                return {
+                    ...item,
+                    quantity: productionPlan.quantity,
+                };
             }
+
             return item;
         });
 
-        if (exists) {
-            setData('productionPlan', updatedOrders);
-        } else {
-            setData('productionPlan', [...currentOrders, productionPlan]);
+        const exists = currentOrders.some(
+            (item) =>
+                item.date === productionPlan.date &&
+                item.productId === productionPlan.productId
+        );
+
+        if (!exists) {
+            updatedOrders.push(productionPlan);
         }
+
+        setData('productionPlan', updatedOrders);
     };
 
     return (
@@ -251,7 +274,11 @@ export default function Index({ productionPlanningId, concepts, conceptsMap, pla
                     orderChange={handleOrderChange}
                     productionPlanChange={handleProductionPlan}
                     loading={refreshing || processing}
-                    planning={configuration.planning}
+                    planning={{
+                        products: planningProducts,
+                        blankProduct: configuration.planning?.blankProduct,
+                        product: configuration.planning.product,
+                    }}
                     orders={orders}
                     level={configuration.level}
                 />

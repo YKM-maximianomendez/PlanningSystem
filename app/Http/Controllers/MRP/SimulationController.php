@@ -4,12 +4,11 @@ namespace App\Http\Controllers\MRP;
 
 use App\DTO\Concept;
 use App\Http\Controllers\Controller;
-use App\Services\CalendarService;
+use App\Jobs\MRP\PlanningEngineJob;
 use App\Services\ConceptService;
-use App\Services\MRP\ConfigurationService;
+use App\Services\MRP\PlanningEngineDataService;
 use App\Services\MRP\ProductionPlanningService;
 use App\Services\MRP\SimulationService;
-use App\Services\PlanningRangeService;
 use App\UseCases\MRP\RunEngineUseCase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,19 +28,10 @@ class SimulationController extends Controller
 
         $as400Connection = DB::connection('as400');
 
-        $planningRange = app(PlanningRangeService::class)->getPlanningRange();
-        $configuration = app(ConfigurationService::class)->getConfiguration(
-            connection: $as400Connection,
-            materialPlanningId: $productionPlanningId,
-            planningRange: $planningRange,
-        );
-
-        $calendar = app(CalendarService::class)->getCalendarFragment(
-            date('Y'),
-            $planningRange->getStartJulianDay(),
-            $planningRange->getEndJulianDay(),
-            $configuration->calendar->value
-        );
+        $planningEngineData = app(PlanningEngineDataService::class)->getData($as400Connection, $productionPlanningId);
+        $planningRange = $planningEngineData['planningRange'];
+        $configuration = $planningEngineData['configuration'];
+        $calendar = $planningEngineData['calendar'];
 
         $output = app(RunEngineUseCase::class)->execute(
             connection: $as400Connection,
@@ -79,6 +69,16 @@ class SimulationController extends Controller
                 'productionPlan' => $request->input('productionPlan', []),
                 'userId' => '00000',
             ]);
+
+            $connection = DB::connection('as400');
+            $dataConfiguration = app(PlanningEngineDataService::class)->getData($connection, $productionPlanningId);
+
+            dispatch(new PlanningEngineJob(
+                productionPlanningId: $productionPlanningId,
+                configuration: $dataConfiguration['configuration'],
+                calendar: $dataConfiguration['calendar'],
+                planningRange: $dataConfiguration['planningRange'],
+            ));
 
             return back()->with('success', 'Simulation data stored successfully.');
         } catch (\Throwable $th) {

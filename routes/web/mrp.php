@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MRP\Configuration\ProductionPlanningSyncController;
 use App\Http\Controllers\MRP\SimulationController;
+use App\Http\Controllers\MRP\Workflow\DeliveryInstructionController;
 use App\Http\Controllers\MRP\Workflow\DraftController;
 use App\Http\Controllers\MRP\Workflow\WorkcenterPlanningController;
 use App\Http\Controllers\MRP\Workflow\WorkflowController;
@@ -35,5 +36,11 @@ Route::middleware(['auth', 'verified'])
             ->name('mrp.workflow.draft.')
             ->group(function () {
                 Route::get('/{workcenterCode}', [DraftController::class, 'index'])->name('index');
+            });
+
+        Route::prefix('mrp/delivery-instruction')
+            ->name('mrp.delivery-instruction.')
+            ->group(function () {
+                Route::get('/{vendorCode}', [DeliveryInstructionController::class, 'index'])->name('index');
             });
     });

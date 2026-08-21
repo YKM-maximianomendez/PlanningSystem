@@ -85,8 +85,9 @@ export const validateConceptChange = (
         }
     }
 
-    if (concept === 'PRODUCTION_PLAN') {
-        const inventoryConcept = concepts.SHEETS_INVENTORY ? concepts.SHEETS_INVENTORY : concepts.BLANK_INVENTORY;
+    // Validate against inventory for PRODUCTION_PLAN and BLANK_PRODUCTION_PLAN
+    if (concept === 'PRODUCTION_PLAN' && concepts.BLANK_INVENTORY) {
+        const inventoryConcept = concepts.BLANK_INVENTORY;
         const blankInventory =
             inventoryConcept?.[previousDate] ?? 0;
 
@@ -96,12 +97,16 @@ export const validateConceptChange = (
                 message: `Planeación no permitida: ${value} piezas excede el inventario disponible de blanks/sheets (${blankInventory} piezas) al ${previousDate}.`,
                 affectedCells: [
                     {
-                        concept: concepts.SHEETS_INVENTORY ? 'SHEETS_INVENTORY' : 'BLANK_INVENTORY',
+                        concept: concepts.BLANK_INVENTORY ? 'BLANK_INVENTORY' : 'SHEETS_INVENTORY',
                         date: previousDate,
                     },
                 ],
             };
         }
+    }
+
+    if (concept === 'PRODUCTION_PLAN' && concepts.SHEETS_INVENTORY) {
+
     }
 
     if (concept == 'BLANK_PRODUCTION_PLAN') {

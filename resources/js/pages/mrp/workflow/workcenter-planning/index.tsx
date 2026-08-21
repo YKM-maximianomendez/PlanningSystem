@@ -30,6 +30,7 @@ export type ProductionPlanning = {
     customerDescription: string;
     productionPlanningId: number | null;
     stockDays: number | null;
+    lastRunAt: string | null;
 }
 
 interface IndexProps {

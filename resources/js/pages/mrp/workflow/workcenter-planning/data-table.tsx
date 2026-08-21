@@ -103,6 +103,12 @@ export default function DataTable({ productionPlannings, isLoading = false }: Da
                 cellClass: 'text-center',
             },
             {
+                headerName: 'Last Run At',
+                field: 'lastRunAt',
+                width: 200,
+                cellClass: 'text-center',
+            },
+            {
                 headerName: 'Actions',
                 sortable: false,
                 filter: false,

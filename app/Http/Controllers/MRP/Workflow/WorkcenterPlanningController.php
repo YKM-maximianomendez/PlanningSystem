@@ -32,6 +32,9 @@ class WorkcenterPlanningController extends Controller
                     'customerDescription' => $item->customer_description,
                     'productionPlanningId' => is_null($item->production_planning_id) ? null : (int) $item->production_planning_id,
                     'stockDays' => 0,
+                    'lastRunAt' => is_null($item->last_runnat)
+                        ? null
+                        : date_create_immutable($item->last_runnat)->format('M d, Y h:i A'),
                 ];
             }, $productionPlannings),
         ]);

@@ -9,6 +9,7 @@ import {
     ICellRendererParams,
     IRowNode,
     TextEditorModule,
+    themeAlpine,
     ValueFormatterParams,
     ValueGetterParams,
 } from 'ag-grid-community';
@@ -30,6 +31,7 @@ interface TimeLineProps {
     loading?: boolean;
     planning: {
         product: Product;
+        products: Product[];
         blankProduct?: Product;
     };
     orders?: {
@@ -194,17 +196,17 @@ export default function TimeLine({
                     cellStyle: (params): CellStyle | null | undefined => {
                         const editable = EDITABLE_CONCEPTS.has(params.data?.concept ?? '');
 
-                        if (isToday) {
-                            return {
-                                backgroundColor: '#1e3552',
-                            };
-                        }
-
                         // if (isToday) {
                         //     return {
-                        //         backgroundColor: appearance === 'dark' ? '#1e3552' : '#EFF6FF',
+                        //         backgroundColor: '#1e3552',
                         //     };
                         // }
+
+                        if (isToday) {
+                            return {
+                                backgroundColor: appearance === 'dark' ? '#1e3552' : '#EFF6FF',
+                            };
+                        }
 
                         // if (editable) {
                         //     return {
@@ -378,13 +380,15 @@ export default function TimeLine({
                 break;
 
             case 'PRODUCTION_PLAN':
-                productionPlanChange({
-                    date,
-                    quantity: value,
-                    productId: planning.product.productId,
+                planning.products.forEach((product) => {
+                    console.log('product', product);
+                    productionPlanChange({
+                        date,
+                        quantity: value,
+                        productId: product.productId,
+                    });
                 });
                 break;
-
             case 'BLANK_PRODUCTION_PLAN':
                 productionPlanChange({
                     date,
@@ -423,6 +427,7 @@ export default function TimeLine({
                     onCellValueChanged={handleCellValueChanged}
                     onGridReady={(e) => { gridApiRef.current = e.api; }}
                     loading={loading}
+                    theme={themeClass}
                 />
             </AgGridProvider>
         </div>

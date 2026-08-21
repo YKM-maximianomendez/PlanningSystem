@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import DataTable from './data-table';
 import { useState } from 'react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Separator } from '@/components/ui/separator';
 
 export type OrderStatus = "ED" | "PE" | "PO" | "UN" | null;
 
@@ -33,6 +34,7 @@ interface IndexProps {
 export default function Index({ workcenterCode, orders, location }: IndexProps) {
     const [value, setValue] = useState(location || 'YH0160');
     const [isLoading, setIsLoading] = useState(false);
+    const [showRunProgramAction, setShowRunProgramAction] = useState(true);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -51,6 +53,7 @@ export default function Index({ workcenterCode, orders, location }: IndexProps) 
 
     const handleValueChange = (newValue: string) => {
         setValue(newValue);
+        setShowRunProgramAction(newValue === 'YH0160'); // Show the action only when the value is 'YH0160'
         router.reload({
             data: { location: newValue },
             onStart: () => setIsLoading(true),
@@ -65,6 +68,18 @@ export default function Index({ workcenterCode, orders, location }: IndexProps) 
                 <div className="flex items-center justify-between gap-2">
                     <HeadingSmall title="Draft" description="Manage your draft workflow." />
                     <div className="flex items-center gap-2">
+                        {
+                            showRunProgramAction && (
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    disabled={isLoading}
+                                >Run Program</Button>
+                            )
+                        }
+
+                        <Separator orientation="vertical" className="h-6" />
+
                         <ToggleGroup
                             value={value}
                             onValueChange={handleValueChange}

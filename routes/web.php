@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\MRP\DeliveryInstructionService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -14,9 +15,9 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    sleep(3);
     Route::get('/test', function () {
-        return Inertia::render('test');
+        app(DeliveryInstructionService::class)->__construct();
+        echo 0;
     })->name('test');
 });
 
